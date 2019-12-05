@@ -11,7 +11,7 @@ VER = '1.0.1'
 
 ########################################################################################################################
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
 
 fileHandler = logging.FileHandler("./Output.txt")
@@ -59,7 +59,7 @@ if radarrMovies.status_code != 200:
 
 for server in Config.sections():
 
-    if server == 'Default' or server == "Radarr":
+    if server == 'Default' or server == "Radarr" or server == "Paths":
         continue  # Default section handled previously as it always needed
 
     else:
@@ -99,11 +99,20 @@ for server in Config.sections():
                 logging.debug('path: {0}'.format(movie['path']))
                 logging.debug('monitored: {0}'.format(movie['monitored']))
 
+                cur_path = movie['path']
+                logger.debug(f'current path: {cur_path}')
+
+                new_path = cur_path
+                for old_path in ConfigSectionMap("Paths"):
+                    new_path = new_path.replace(old_path, ConfigSectionMap("Paths")[old_path])
+
+                logger.debug(f'new path: {new_path}')
+
                 payload = {'title': movie['title'],
                            'qualityProfileId': movie['qualityProfileId'],
                            'titleSlug': movie['titleSlug'],
                            'tmdbId': movie['tmdbId'],
-                           'path': movie['path'],
+                           'path': new_path,
                            'monitored': movie['monitored'],
                            'images': images,
                            'profileId': movie['profileId'],
